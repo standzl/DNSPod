@@ -1,5 +1,7 @@
 # DNSPod
 使用python 获取本机ip 更新动态DNS记录到donpod
+具体接口说明文档参考：https://www.dnspod.cn/docs/records.html#dns
+
 
 接口地址： https://dnsapi.cn/Record.Ddns
 
