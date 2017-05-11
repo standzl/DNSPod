@@ -17,7 +17,7 @@ CHECK_IP_TICK = 30
 
 #log file handler
 #--------------------------you need to change your log file
-logFile = '/Users/wind/GitRepo/DynamicDNSPod/ddp.log'
+logFile = '/home/pi/DNSPod/ddp.log'
 handler = logging.handlers.RotatingFileHandler(logFile, maxBytes = 1024*1024, backupCount=10)
 #fmt = '%(asctime)s - %(filename)s:%(lineno)s - %(name)s - %(message)s'
 fmt = '%(asctime)s - %(filename)s:%(lineno)s - %(message)s'
@@ -37,11 +37,11 @@ logger.addHandler(console)
 #params used to query initial ip
 #-----------------------you need to change your params
 paramsQuery = dict(
-    login_email="login_email", # replace with your email
-    login_password="login_password", # replace with your password
+    login_token="30201,77cdcdf7c78a5c94e14aaa2d2c7a9070", # replace with your email
+    lang="cn", 
     format="json",
-    domain_id=domain_id, # replace with your domain_od, can get it by API Domain.List
-    record_id=record_id, # replace with your record_id, can get it by API Record.List
+    domain_id="2394741", # replace with your domain_od, can get it by API Domain.List
+    record_id="47014600", # replace with your record_id, can get it by API Record.List
 )
 
 #params used to update ip to dnspod
