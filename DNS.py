@@ -12,9 +12,9 @@ import copy
 import threading
 
 #try to get initial ip on dnspod every tick until success
-GET_INITIAL_IP_TICK = 30 
+GET_INITIAL_IP_TICK = 10 
 #check ip every tick
-CHECK_IP_TICK = 30
+CHECK_IP_TICK = 10
 
 #log file handler
 #--------------------------you need to change your log file
@@ -111,7 +111,7 @@ def fetchIpThread():
 
 #This is update ip to dnspos Thread
 def updateDnsposThread():
-	global currentIp
+	global currentIP
 	if con.acquire():
 		while True:
 			try:
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     logger.info('start ddp')
     logger.info('paramsQuery: %s', paramsQuery)
     logger.info('params: %s', params)
-	t1=threading.Thread(target=fetchIpThread,name='fetchIpThread')
-	t2=threading.Thread(target=updateDnsposThread,name='updateDnsposThread')
-	t1.start()
-	t2.start()
+    t1=threading.Thread(target=fetchIpThread,name='fetchIpThread')
+    t2=threading.Thread(target=updateDnsposThread,name='updateDnsposThread')
+    t1.start()
+    t2.start()
