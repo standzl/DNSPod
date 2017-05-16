@@ -9,6 +9,7 @@ import logging.handlers
 import sys
 import json
 import copy
+import threading
 
 #try to get initial ip on dnspod every tick until success
 GET_INITIAL_IP_TICK = 30 
@@ -51,6 +52,8 @@ params.update({"sub_domain":"sub_domain", "record_line":"默认"})
 
 #current ip in dnspod
 currentIP = None
+#init thread Condition
+con=threading.Condition()
 
 #query initial ip from dnspod
 def getInitialIPFromDP():
@@ -87,38 +90,52 @@ def UpdateIPToDP(ip):
     conn.close()
     return response.status == 200
 
+# this is fetch ip Thread
+def fetchIpThread():
+	global currentIp
+	if con.acquire():
+		while True:
+			try:
+				logger.info('try to get initial ip from dnspod')
+				currentIP = getInitialIPFromDP()
+				if currentIP != None:
+					logger.info('get initial ip: %s', currentIP)
+					con.notify()
+					con.wait()
+				time.sleep(GET_INITIAL_IP_TICK)
+			except Exception, e:
+				logger.exception(e)
+				pass
+				
+				
+
+#This is update ip to dnspos Thread
+def updateDnsposThread():
+	global currentIp
+	if con.acquire():
+		while True:
+			try:
+				logger.info('start check ip')
+				serverIP = getServerIP()
+				logger.info('get server ip: %s. old: %s', serverIP, currentIP)
+				if currentIP != serverIP:
+					logger.info('ip changed, try to update new ip to dnspod')
+					if UpdateIPToDP(serverIP):
+						currentIP = serverIP
+						logger.info('succeed')
+				con.notify()
+				con.wait()
+				time.sleep(CHECK_IP_TICK)	
+			except Exception, e:
+				logger.exception(e)
+				pass	
+			
 
 if __name__ == '__main__':
- 
     logger.info('start ddp')
     logger.info('paramsQuery: %s', paramsQuery)
     logger.info('params: %s', params)
-
-    #get initial ip from dnspod
-    while True:
-        try:
-            logger.info('try to get initial ip from dnspod')
-            currentIP = getInitialIPFromDP()
-            if currentIP != None:
-                logger.info('get initial ip: %s', currentIP)
-                break
-        except Exception, e:
-            logger.exception(e)
-            pass
-        time.sleep(GET_INITIAL_IP_TICK)
-
-    #update ip to dnspod if changed
-    while True:
-        try:
-            logger.info('start check ip')
-            serverIP = getServerIP()
-            logger.info('get server ip: %s. old: %s', serverIP, currentIP)
-            if currentIP != serverIP:
-                logger.info('ip changed, try to update new ip to dnspod')
-                if UpdateIPToDP(serverIP):
-                    currentIP = serverIP
-                    logger.info('succeed')
-        except Exception, e:
-            logger.exception(e)
-            pass
-        time.sleep(CHECK_IP_TICK)
+	t1=threading.Thread(target=fetchIpThread,name='fetchIpThread')
+	t2=threading.Thread(target=updateDnsposThread,name='updateDnsposThread')
+	t1.start()
+	t2.start()
